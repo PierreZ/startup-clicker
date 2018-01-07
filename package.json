@@ -14,6 +14,9 @@
     "build": "node build/build.js"
   },
   "dependencies": {
+    "big-integer": "^1.6.26",
+    "numbro": "^1.11.1",
+    "numeral": "^2.0.6",
     "spectre.css": "^0.5.0",
     "vue": "^2.5.2",
     "vue-router": "^3.0.1"

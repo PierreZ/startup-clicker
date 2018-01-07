@@ -14,13 +14,13 @@
     <div class="container">
       <div class="columns">
         <div v-on:click="connectWS()" class="column">
-          <h1 class="centered">{{money}} euros</h1>
-          <h4>per second: {{totalRate}} euros/sec</h4>
+          <h1 class="centered">{{money.valueOf().toLocaleString()}} euros</h1>
+          <h4>per second: {{totalRate.toLocaleString()}} euros/sec</h4>
         </div>
       </div>
       <div class="columns">
         <div class="column">
-          <a href="#"><img class="money centered img-responsive" v-on:click="clickCounter += 1;money += 1" src="../assets/money.png"></a>
+          <a href="#"><img class="money centered img-responsive" v-on:click="clickCounter += 1;money = money.add(1)" src="../assets/money.png"></a>
         </div>
       </div>
     </div>
@@ -30,7 +30,7 @@
       <div class="modal-container">
         <div class="modal-header">
           <a v-on:click="showAssetsModal = false" href="#" class="btn btn-clear float-right" aria-label="Close"></a>
-          <div class="modal-title h5">Buy assets ({{money}} euros available)</div>
+          <div class="modal-title h5">Buy assets ({{money.valueOf().toLocaleString()}} euros available)</div>
         </div>
         <div class="modal-body">
           <div class="content">
@@ -48,7 +48,7 @@
               </div>
               <div class="card-footer">
                 <button class="btn btn-primary badge btn-error" v-bind:class="{ 'btn-success': asset.price > money }" v-on:click="buy(asset.name)"
-                  :data-badge="`${asset.number}`">Buy for {{ asset.price }} euros</button>
+                  :data-badge="`${asset.number}`">Buy for {{ asset.price.toLocaleString() }} euros</button>
               </div>
             </div>
           </div>
@@ -67,7 +67,7 @@
     name: 'Home',
     data() {
       return {
-        money: 0,
+        money: window.bigInt(),
         clickCounter: 0,
         timer: '',
         ws: {},
@@ -114,10 +114,12 @@
         this.refreshAssets()
       },
       parseMessage: function (gts) {
+        //console.log(gts.data)
         let classname = gts.data.split(" ")[1].split("{")[0]
         switch (classname) {
           case 'money':
-            this.money = parseInt(gts.data.split(" ")[2], 10)
+          let stri = gts.data.split(" ")[2]
+          this.money = window.bigInt(stri)
             break;
           case 'asset':
             this.refreshAssets()
