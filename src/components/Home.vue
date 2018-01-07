@@ -47,7 +47,7 @@
                 <br/>
               </div>
               <div class="card-footer">
-                <button class="btn btn-primary badge btn-error" v-bind:class="{ 'btn-success': asset.price > money }" v-on:click="buy(asset.name)"
+                <button class="btn badge" v-bind:class="{ 'btn-error': asset.price > money, 'btn-success': asset.price < money }" v-on:click="buy(asset.name)"
                   :data-badge="`${asset.number}`">Buy for {{ asset.price.toLocaleString() }} euros</button>
               </div>
             </div>
