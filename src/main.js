@@ -4,13 +4,9 @@ import Vue from 'vue'
 import App from './App'
 import router from './router'
 
-// https://www.npmjs.com/package/vue-native-websocket
-// import VueNativeSock from 'vue-native-websocket'
-// Vue.use(VueNativeSock, 'wss://warp.pierrezemb.org/api/v0/plasma', {
-//   reconnection: true,
-//   reconnectionAttempts: 5,
-//   reconnectionDelay: 3000
-// })
+// register the plugin on vue
+import Toasted from 'vue-toasted'
+Vue.use(Toasted)
 
 Vue.config.productionTip = false
 

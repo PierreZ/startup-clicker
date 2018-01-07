@@ -47,7 +47,7 @@
                 <br/>
               </div>
               <div class="card-footer">
-                <button class="btn badge" v-bind:class="{ 'btn-error': asset.price > money, 'btn-success': asset.price < money }" v-on:click="buy(asset.name)"
+                <button class="btn badge" v-bind:class="{ 'disabled': asset.price > money, 'btn-success': asset.price < money }" v-on:click="buy(asset.name)"
                   :data-badge="`${asset.number}`">Buy for {{ asset.price.toLocaleString() }} euros</button>
               </div>
             </div>
@@ -95,9 +95,9 @@
               // names must be equal
               return 0
             })
-            let rates = this.assets.map(function(obj){
+            let rates = this.assets.map(function (obj) {
               let ob = Object.assign({}, obj);
-                return obj.rate * obj.number
+              return obj.rate * obj.number
             })
             this.totalRate = (rates.reduce((accumulator, currentValue) => accumulator + currentValue))
 
@@ -113,15 +113,30 @@
         })
         this.refreshAssets()
       },
+      pushNotification: function (message) {
+        this.$toasted.show(message, {
+          theme: "primary",
+          position: "top-right",
+          duration: 5000
+        });
+      },
       parseMessage: function (gts) {
-        //console.log(gts.data)
         let classname = gts.data.split(" ")[1].split("{")[0]
         switch (classname) {
           case 'money':
-          let stri = gts.data.split(" ")[2]
-          this.money = window.bigInt(stri)
+            let stri = gts.data.split(" ")[2]
+            this.money = window.bigInt(stri)
             break;
           case 'asset':
+            console.log(gts.data)
+            let labels = gts.data.split(" ")[1].split("{")[1].split("}")[0].split(",")
+            let assetName = ''
+            labels.forEach(function (label) {
+              if (label.includes('name=')) {
+                assetName = label.split("=")[1]
+              }
+            })
+            this.pushNotification('an ' + assetName + ' has been bought!')
             this.refreshAssets()
             break;
           default:
@@ -151,6 +166,7 @@
 
       // Connection opened
       this.ws.addEventListener('open', function (event) {
+
         this.send(
           'SUBSCRIBE DlkMIXbwIKIw9Q25BP.o4G7zDibiURUEc1ATjqah2rNQgMys2SbuoXEwG6nPaCi5K61LhtnXRKSjt3EavUJW84r9FG.O1bo6upi.WrKDEj2fQ0hwto4tYk ~.*{} SUBSCRIPTIONS'
         )
@@ -169,7 +185,7 @@
   .money {
     transition: transform .2s;
     margin-top: 50px;
-    max-height:400px;
+    max-height: 400px;
     /* Animation */
   }
 
