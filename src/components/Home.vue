@@ -35,20 +35,18 @@
         <div class="modal-body">
           <div class="content">
             <div class="card" v-for="asset in assets">
-              <!--<div class="card-image">
-    <img src="img/osx-el-capitan.jpg" class="img-responsive">
-  </div>-->
               <div class="card-header">
-                <div class="card-title h5">{{asset.name}}</div>
-                <!--<div class="card-subtitle text-gray">Software and hardware</div>-->
+                <!--<button class="btn btn-primary float-right"><i class="icon icon-plus"></i></button>-->
+                <div class="card-title h5" :data-badge="`${asset.number}`" >{{asset.name}}</div>
+                <div class="card-subtitle text-gray">Base profit: {{(asset.rate).toLocaleString()}} euros/sec</div>
+                <div class="card-subtitle text-gray">Total: {{(asset.rate*asset.number).toLocaleString()}} euros/sec</div>
               </div>
               <div class="card-body">
                 {{asset.description}}
-                <br/>
               </div>
               <div class="card-footer">
-                <button class="btn badge" v-bind:class="{ 'disabled': asset.price > money, 'btn-success': asset.price < money }" v-on:click="buy(asset.name)"
-                  :data-badge="`${asset.number}`">Buy for {{ asset.price.toLocaleString() }} euros</button>
+                <button class="btn badge float-right" :data-badge="`${asset.number}`" v-bind:class="{ 'disabled': asset.price > money, 'btn-success': asset.price < money }" v-on:click="buy(asset.label)"
+                  >Buy for {{ asset.price.toLocaleString() }} euros</button>
               </div>
             </div>
           </div>
@@ -104,6 +102,7 @@
           })
       },
       buy: function (asset) {
+        console.log('Buying ' + asset)
         fetch('https://app-6ed8f5ca-03ad-43e9-9366-bf87b695ff01.cleverapps.io/api/v0/assets/' + asset, {
           method: 'POST',
           headers: {
