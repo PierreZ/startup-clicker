@@ -3,24 +3,15 @@
   <div class="home">
     <div class="container">
       <div class="columns">
-        <div class="column col-1 col-ml-auto">
-          <a v-on:click="showAssetsModal = true" href="#"><i class="icon icon-plus icon-2x"></i></a>
-        </div>
-        <div class="column col-2">
-          <a v-on:click="showUpgradesModal = true" href="#"><i class="icon icon-upload icon-2x"></i></a>
-        </div>
-      </div>
-    </div>
-    <div class="container">
-      <div class="columns">
         <div v-on:click="connectWS()" class="column">
           <h1 class="centered">{{money.valueOf().toLocaleString()}} euros</h1>
-          <h4>per second: {{totalRate.toLocaleString()}} euros/sec</h4>
+          <h4>{{computeClick()}} euros/clic</h4>
+          <h4>{{totalRate.toLocaleString()}} euros/sec</h4>
         </div>
       </div>
       <div class="columns">
         <div class="column">
-          <a href="#"><img class="money centered img-responsive" v-on:click="clickCounter += 1;money = money.add(1)" src="../assets/money.png"></a>
+          <a href="#"><img class="money centered img-responsive" v-on:click="clickCounter += 1;money = money.add(computeClick())" src="../assets/money.png"></a>
         </div>
       </div>
     </div>
@@ -37,7 +28,7 @@
             <div class="card" v-for="asset in assets">
               <div class="card-header">
                 <!--<button class="btn btn-primary float-right"><i class="icon icon-plus"></i></button>-->
-                <div class="card-title h5" :data-badge="`${asset.number}`" >{{asset.name}}</div>
+                <div class="card-title h5" :data-badge="`${asset.number}`">{{asset.name}}</div>
                 <div class="card-subtitle text-gray">Base profit: {{(asset.rate).toLocaleString()}} euros/sec</div>
                 <div class="card-subtitle text-gray">Total: {{(asset.rate*asset.number).toLocaleString()}} euros/sec</div>
               </div>
@@ -45,8 +36,8 @@
                 {{asset.description}}
               </div>
               <div class="card-footer">
-                <button class="btn badge float-right" :data-badge="`${asset.number}`" v-bind:class="{ 'disabled': asset.price > money, 'btn-success': asset.price < money }" v-on:click="buy(asset.label)"
-                  >Buy for {{ asset.price.toLocaleString() }} euros</button>
+                <button class="btn badge float-right" :data-badge="`${asset.number}`" v-bind:class="{ 'disabled': asset.price > money, 'btn-success': asset.price < money }"
+                  v-on:click="buy(asset.label)">Buy for {{ asset.price.toLocaleString() }} euros</button>
               </div>
             </div>
           </div>
@@ -54,6 +45,43 @@
         <div class="modal-footer">
           ...
         </div>
+      </div>
+    </div>
+    <!-- upgrade part -->
+    <div class="modal" v-bind:class="{ active: showUpgradesModal }" id="modal-id">
+      <a v-on:click="showUpgradesModal = false" href="#" class="modal-overlay" aria-label="Close"></a>
+      <div class="modal-container">
+        <div class="modal-header">
+          <a v-on:click="showUpgradesModal = false" href="#" class="btn btn-clear float-right" aria-label="Close"></a>
+          <div class="modal-title h5">Fundraise ({{money.valueOf().toLocaleString()}} euros available)</div>
+        </div>
+        <div class="modal-body">
+          <div class="content">
+            <div class="card">
+              <div class="card-header">
+                <!--<button class="btn btn-primary float-right"><i class="icon icon-plus"></i></button>-->
+                <div class="card-title h5">Fundraise</div>
+                <div class="card-subtitle text-gray">Clicking gains +1% of your euros/sec</div>
+              </div>
+              <div class="card-body">
+                c
+              </div>
+              <div class="card-footer">
+                <button class="btn badge float-right" :data-badge="`${fundRaise.number}`" v-bind:class="{ 'disabled': fundRaise.price > money, 'btn-success': fundRaise.price < money }"
+                  v-on:click="upgrade()">Buy for {{ fundRaise.price.toLocaleString() }} euros</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          ...
+        </div>
+      </div>
+    </div>
+    <div class="container">
+      <div class="columns">
+        <div class="column col-2 col-mx-auto"><button v-on:click="showAssetsModal = true" class="btn btn-success">Buy assets</button></div>
+        <div class="column col-2 col-mx-auto"><button v-on:click="showUpgradesModal = true" class="btn btn-success">Do a fundraise</button></div>
       </div>
     </div>
   </div>
@@ -66,6 +94,8 @@
     data() {
       return {
         money: window.bigInt(),
+        endpoint: 'https://app-6ed8f5ca-03ad-43e9-9366-bf87b695ff01.cleverapps.io',
+        //endpoint: 'http://localhost:8082',
         clickCounter: 0,
         timer: '',
         ws: {},
@@ -73,12 +103,27 @@
         totalRate: 0,
         showAssetsModal: false,
         showUpgradesModal: false,
+        fundRaise: {
+          "BasePrice": 0,
+          "number": 0,
+          "price": 0
+        },
       }
     },
     methods: {
+      computeClick: function () {
+        return Math.ceil(this.totalRate / 100.0 * this.fundRaise.number + 1)
+      },
+      refreshUpgrades: function () {
+        fetch(this.endpoint + '/api/v0/upgrade')
+          .then(response => response.json())
+          .then(json => {
+            this.fundRaise = json
+          })
+      },
       refreshAssets: function () {
         console.log('refreshing assets...')
-        fetch('https://app-6ed8f5ca-03ad-43e9-9366-bf87b695ff01.cleverapps.io/api/v0/assets')
+        fetch(this.endpoint + '/api/v0/assets')
           .then(response => response.json())
           .then(json => {
             this.assets = json.sort(function (a, b) {
@@ -98,12 +143,22 @@
               return obj.rate * obj.number
             })
             this.totalRate = (rates.reduce((accumulator, currentValue) => accumulator + currentValue))
-
           })
+      },
+      upgrade: function () {
+        console.log('Buying an upgrade')
+        fetch(this.endpoint + '/api/v0/upgrade', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json, text/plain, */*',
+            'Content-Type': 'application/json'
+          }
+        })
+        //this.refreshUpgrades()
       },
       buy: function (asset) {
         console.log('Buying ' + asset)
-        fetch('https://app-6ed8f5ca-03ad-43e9-9366-bf87b695ff01.cleverapps.io/api/v0/assets/' + asset, {
+        fetch(this.endpoint + '/api/v0/assets/' + asset, {
           method: 'POST',
           headers: {
             'Accept': 'application/json, text/plain, */*',
@@ -122,6 +177,10 @@
       parseMessage: function (gts) {
         let classname = gts.data.split(" ")[1].split("{")[0]
         switch (classname) {
+          case 'fundraising':
+            this.pushNotification('an fundraising has been made!')
+            this.refreshUpgrades()
+            break;
           case 'money':
             let stri = gts.data.split(" ")[2]
             this.money = window.bigInt(stri)
@@ -145,7 +204,7 @@
       },
       flushClick: function () {
         if (this.clickCounter > 0) {
-          fetch('https://app-6ed8f5ca-03ad-43e9-9366-bf87b695ff01.cleverapps.io/api/v0/money', {
+          fetch(this.endpoint + '/api/v0/money', {
             method: 'POST',
             headers: {
               'Accept': 'application/json, text/plain, */*',
@@ -161,6 +220,7 @@
     },
     created: function () {
       this.refreshAssets()
+      this.refreshUpgrades()
       this.ws = new WebSocket('wss://warp.pierrezemb.org/api/v0/plasma')
 
       // Connection opened
@@ -194,3 +254,4 @@
   }
 
 </style>
+
