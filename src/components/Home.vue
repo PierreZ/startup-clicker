@@ -25,7 +25,7 @@
         </div>
         <div class="modal-body">
           <div class="content">
-            <div class="card" v-for="asset in assets">
+            <div class="card" v-if="i< maxIterator" v-for="(asset, i) in assets">
               <div class="card-header">
                 <!--<button class="btn btn-primary float-right"><i class="icon icon-plus"></i></button>-->
                 <div class="card-title h5" :data-badge="`${asset.number}`">{{asset.name}}</div>
@@ -102,6 +102,7 @@
         assets: [],
         totalRate: 0,
         showAssetsModal: false,
+        maxIterator: 0,
         showUpgradesModal: false,
         fundRaise: {
           "BasePrice": 0,
@@ -143,7 +144,15 @@
               return obj.rate * obj.number
             })
             this.totalRate = (rates.reduce((accumulator, currentValue) => accumulator + currentValue))
+            for (var i = 0; i < this.assets.length; i++) {
+              if (this.assets[i].number == 0) {
+                this.maxIterator = i + 1
+                break
+              }
+            };
           })
+        // Computing maxIterator
+
       },
       upgrade: function () {
         console.log('Buying an upgrade')
@@ -254,4 +263,3 @@
   }
 
 </style>
-
