@@ -4,14 +4,14 @@
     <div class="container">
       <div class="columns">
         <div class="column">
-          <h1>Startup Clicker</h1>
-          <h3 class="centered">{{money.valueOf().toLocaleString('en-US')}} euros</h3>
-          <h4>{{totalRate.toLocaleString('en-US')}} euros/sec</h4>
+          <h1>Startup Clicker <i class="fa fa-question-circle" aria-hidden="true"></i></h1>
+          <h3 class="centered">{{money.valueOf().toLocaleString('en-US')}} €</h3>
+          <h4>{{totalRate.toLocaleString('en-US')}} €/sec</h4>
         </div>
       </div>
       <div class="columns">
         <div class="column col-mx-auto col-xs-10 col-sm-10 col-md-4 col-lg-4 col-xl-4 col-4">
-          <a v-on:click="clickCounter += 1;money = money.add(computeClick());show = !show" href="#">
+          <a v-on:click="handleClickOnMoney()" href="#">
             <img class="money centered img-responsive" src="../assets/money.png">
             <transition name="bounce slide-fade">
               <div v-if="show" class="centered-money" style="text-align: center;">
@@ -28,7 +28,7 @@
       <div class="modal-container">
         <div class="modal-header">
           <a v-on:click="showAssetsModal = false" href="#" class="btn btn-clear float-right" aria-label="Close"></a>
-          <div class="modal-title h5">Buy assets ({{money.valueOf().toLocaleString('en-US')}} euros available)</div>
+          <div class="modal-title h5">Buy assets ({{money.valueOf().toLocaleString('en-US')}} € available)</div>
         </div>
         <div class="modal-body">
           <div class="content">
@@ -36,15 +36,15 @@
               <div class="card-header">
                 <!--<button class="btn btn-primary float-right"><i class="icon icon-plus"></i></button>-->
                 <div class="card-title h5" :data-badge="`${asset.number}`">{{asset.name}}</div>
-                <div class="card-subtitle text-gray">Base profit: {{(asset.rate).toLocaleString('en-US')}} euros/sec</div>
-                <div class="card-subtitle text-gray">Total: {{(asset.rate*asset.number).toLocaleString('en-US')}} euros/sec</div>
+                <div class="card-subtitle text-gray">Base profit: {{(asset.rate).toLocaleString('en-US')}} €/sec</div>
+                <div class="card-subtitle text-gray">Total: {{(asset.rate*asset.number).toLocaleString('en-US')}} €/sec</div>
               </div>
               <div class="card-body">
                 {{asset.description}}
               </div>
               <div class="card-footer">
                 <button class="btn badge float-right" :data-badge="`${asset.number}`" v-bind:class="{ 'disabled': asset.price > money, 'btn-success': asset.price < money }"
-                  v-on:click="buy(asset.label)">Buy for {{ asset.price.toLocaleString('en-US') }} euros</button>
+                  v-on:click="buy(asset.label)">Buy for {{ asset.price.toLocaleString('en-US') }} €</button>
               </div>
             </div>
           </div>
@@ -60,7 +60,7 @@
       <div class="modal-container">
         <div class="modal-header">
           <a v-on:click="showUpgradesModal = false" href="#" class="btn btn-clear float-right" aria-label="Close"></a>
-          <div class="modal-title h5">Fundraise ({{money.valueOf().toLocaleString('en-US')}} euros available)</div>
+          <div class="modal-title h5">Fundraise ({{money.valueOf().toLocaleString('en-US')}} € available)</div>
         </div>
         <div class="modal-body">
           <div class="content">
@@ -68,11 +68,11 @@
               <div class="card-header">
                 <!--<button class="btn btn-primary float-right"><i class="icon icon-plus"></i></button>-->
                 <div class="card-title h5">Fundraise</div>
-                <div class="card-subtitle text-gray">Clicking gains +1% of your euros/sec</div>
+                <div class="card-subtitle text-gray">Clicking gains +1% of your €/sec</div>
               </div>
               <div class="card-footer">
                 <button class="btn badge float-right" :data-badge="`${fundRaise.number}`" v-bind:class="{ 'disabled': fundRaise.price > money, 'btn-success': fundRaise.price < money }"
-                  v-on:click="upgrade()">Buy for {{ fundRaise.price.toLocaleString('en-US') }} euros</button>
+                  v-on:click="upgrade()">Buy for {{ fundRaise.price.toLocaleString('en-US') }} €</button>
               </div>
             </div>
           </div>
@@ -104,6 +104,7 @@
         clickCounter: 0,
         timer: '',
         ws: {},
+        resetDisplay: setTimeout(function(){this.show = false},3000),
         assets: [],
         totalRate: 0,
         showAssetsModal: false,
@@ -117,6 +118,15 @@
       }
     },
     methods: {
+      handleClickOnMoney: function() {
+        this.clickCounter += 1
+        this.money = this.money.add(this.computeClick())
+        clearTimeout(this.resetDisplay)
+        this.show = !this.show
+        this.resetDisplay = setTimeout(() => {
+            this.show = false
+          },1000)
+      },
       computeClick: function () {
         return Math.ceil(this.totalRate / 100.0 * this.fundRaise.number + 1)
       },
@@ -145,7 +155,8 @@
               return 0
             })
             let rates = this.assets.map(function (obj) {
-              let ob = Object.assign({}, obj);
+              let ob = Object.assign({}, obj)
+              
               return obj.rate * obj.number
             })
             this.totalRate = (rates.reduce((accumulator, currentValue) => accumulator + currentValue))
